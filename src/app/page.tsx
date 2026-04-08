@@ -7,16 +7,16 @@ const GutLoadingAnimation = () => {
   // A flawlessly balanced set of pristine bezier curves mirroring the exact S-topology 
   // of the logo gut. By reverting to mathematically drawn SVGs instead of extracting 
   // rasterized pixel blocks, we guarantee pristine, non-fuzzy retina rendering.
-  const gutPath = "M 20 10 C 60 10, 60 28, 32 28 C 4 28, 4 46, 32 46 C 60 46, 60 64, 32 64 C 4 64, 4 82, 32 82 C 45 82, 45 95, 32 95";
+  const gutPath = "M 15 15 C 110 15, 110 32, 55 32 C 0 32, 0 49, 55 49 C 110 49, 110 66, 55 66 C 0 66, 0 83, 15 83";
 
   return (
     <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
 
       {/* Scaled gracefully with plenty of bounding box space to prevent clip squishing */}
-      <div style={{ position: 'relative', width: '64px', height: '105px', margin: '0 auto 1.5rem auto' }}>
+      <div style={{ position: 'relative', width: '120px', height: '95px', margin: '0 auto 1.5rem auto' }}>
         
         {/* Layer 1: Base sharp vector layer, completely clean unbroken SVG! */}
-        <svg width="64px" height="105px" style={{ position: 'absolute', top: 0, left: 0, display: 'block', overflow: 'visible' }}>
+        <svg width="120px" height="95px" style={{ position: 'absolute', top: 0, left: 0, display: 'block', overflow: 'visible' }}>
           <path
             d={gutPath}
             fill="none"
@@ -30,7 +30,7 @@ const GutLoadingAnimation = () => {
           Layer 2: The Masked Bulge layer. Natively scalable perfectly crisp SVG! 
           Takes the same mathematical shape but renders it fatter.
         */}
-        <svg width="64px" height="105px" style={{ position: 'absolute', top: 0, left: 0, display: 'block', overflow: 'visible' }}>
+        <svg width="120px" height="95px" style={{ position: 'absolute', top: 0, left: 0, display: 'block', overflow: 'visible' }}>
           <defs>
             {/* 
               By nesting an <animateMotion> inside a pure SVG <mask id="..."> block, 
