@@ -5,8 +5,8 @@ assets/
 scripts/
 *.jpg
 *.png
-!public/char/
-!public/*.png
-!public/*.jpg
-!public/*.svg
-!public/*.ico
+!public/
+!public/**
+!public/char/**
+!public/char/**/*.png
+!public/char/**/*.jpg
