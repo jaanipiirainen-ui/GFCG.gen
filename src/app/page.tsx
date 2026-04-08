@@ -74,6 +74,7 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,6 +127,37 @@ export default function Home() {
 
   return (
     <main className="container">
+      <button className="info-button" aria-label="Information" onClick={() => setShowInfo(true)}>?</button>
+      
+      {showInfo && (
+        <div className="modal-overlay" onClick={() => setShowInfo(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowInfo(false)} aria-label="Close">×</button>
+            <h2>💡 How to use the Generator</h2>
+            
+            <div className="modal-section">
+              <h3>Cost & Quality</h3>
+              <p>This tool uses a very powerful, high-quality AI model. Each image costs the company about $0.05 to generate, so try to be thoughtful with your prompts and avoid rapid-fire testing!</p>
+            </div>
+            
+            <div className="modal-section">
+              <h3>The "Face Swap" Glitch</h3>
+              <p>Sometimes, if the scenario is extremely complex or the guys are squished too closely together, the AI might get confused and mix up their faces (like accidentally giving James a mustache). Keep your prompt actions clear and simple for the best results!</p>
+            </div>
+
+            <div className="modal-section">
+              <h3>Built-in Professional Photography</h3>
+              <p>You don't need to type things like "highly detailed photo", "good lighting", or "85mm camera lens". Just type the action you want them doing, and the system automatically wraps your prompt in a professional corporate photography filter.</p>
+            </div>
+
+            <div className="modal-section">
+              <h3>Patience</h3>
+              <p>Good gut feelings take a little time to process! Each image will take about 10 to 15 seconds to fully generate.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="header">
         <div className="title-wrapper">
           <img src="/logo-nobg.png" alt="GFCG Logo" className="logo" />
