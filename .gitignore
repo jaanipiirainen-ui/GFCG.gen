@@ -8,3 +8,9 @@ node_modules/
 
 # OS files
 .DS_Store
+.vercel
+
+# Massive Zips and abandonware data
+public/assets/
+assets/
+*.zip

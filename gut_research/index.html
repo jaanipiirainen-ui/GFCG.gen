@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { background: #e5e7eb; display: flex; gap: 2rem; padding: 2rem; font-family: sans-serif; }
+        .demo-box { text-align: center; }
+        .gut-container {
+            width: 150px;
+            height: 155px;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .gut-img {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        /* Poop animation (linear top down for testing) */
+        @keyframes pooMove {
+            0% { top: 10%; left: 10%; }
+            100% { top: 90%; left: 90%; }
+        }
+        .poop {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, white 0%, transparent 100%);
+            border-radius: 50%;
+            animation: pooMove 3s infinite linear;
+            margin: -15px 0 0 -15px; 
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Demo 1: SVG Masking (Dilated base masked by moving circle) -->
+    <div class="demo-box">
+        <h3>Option 1: Masked Dilation</h3>
+        <div class="gut-container">
+            <svg width="0" height="0">
+                <defs>
+                    <filter id="dilate">
+                        <feMorphology in="SourceGraphic" operator="dilate" radius="3" result="thick"/>
+                    </filter>
+                    <mask id="poopMask">
+                        <circle cx="0" cy="0" r="25" fill="white" id="maskCircle">
+                            <animate attributeName="cx" values="15;135" dur="3s" repeatCount="indefinite" />
+                            <animate attributeName="cy" values="15;140" dur="3s" repeatCount="indefinite" />
+                        </circle>
+                    </mask>
+                </defs>
+            </svg>
+            <!-- Base gut -->
+            <img src="gut-exact.png" class="gut-img" />
+            <!-- Dilated gut overlaid, but only visible at mask -->
+            <img src="gut-exact.png" class="gut-img" style="filter: url(#dilate); mask: url(#poopMask); -webkit-mask: url(#poopMask);" />
+        </div>
+    </div>
+
+</body>
+</html>

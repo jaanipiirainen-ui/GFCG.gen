@@ -1,0 +1,12 @@
+# Ignore old and unused massive asset directories/files to respect the 100MB Vercel Upload limit
+public/assets/
+assets/
+*.zip
+scripts/
+*.jpg
+*.png
+!public/char/
+!public/*.png
+!public/*.jpg
+!public/*.svg
+!public/*.ico
