@@ -96,20 +96,19 @@ export async function POST(req: Request) {
     // Inject the IP-Adapter payloads exactly chronologically
     if (jamesIsFirst) {
       const idxStr1 = await loadCharacterImages('james wilson');
-      // Anti-bleed boundary: Explicitly define what James IS NOT to prevent Andrew's dominant features from infecting his face in nested scenes.
-      if (idxStr1) suffixDefinitions += `James is the exact man shown in ${idxStr1}, James is clean-shaven, has no glasses, and no mustache. `;
+      if (idxStr1) suffixDefinitions += `James is the exact man shown in ${idxStr1}. `;
       if (wantsAndrew) {
         const idxStr2 = await loadCharacterImages('andrew clarke');
-        if (idxStr2) suffixDefinitions += `Andrew is the exact man shown in ${idxStr2}, Andrew has thick black glasses, curly hair, and a prominent mustache. `;
+        if (idxStr2) suffixDefinitions += `Andrew is the exact man shown in ${idxStr2}. `;
       }
     } else {
       if (wantsAndrew) {
         const idxStr1 = await loadCharacterImages('andrew clarke');
-        if (idxStr1) suffixDefinitions += `Andrew is the exact man shown in ${idxStr1}, Andrew has thick black glasses, curly hair, and a prominent mustache. `;
+        if (idxStr1) suffixDefinitions += `Andrew is the exact man shown in ${idxStr1}. `;
       }
       if (wantsJames) {
         const idxStr2 = await loadCharacterImages('james wilson');
-        if (idxStr2) suffixDefinitions += `James is the exact man shown in ${idxStr2}, James is clean-shaven, has no glasses, and no mustache. `;
+        if (idxStr2) suffixDefinitions += `James is the exact man shown in ${idxStr2}. `;
       }
     }
 
@@ -117,7 +116,7 @@ export async function POST(req: Request) {
     if (!wantsAndrew && !wantsJames) {
        const aIdx = await loadCharacterImages('andrew clarke');
        const jIdx = await loadCharacterImages('james wilson');
-       suffixDefinitions = `Note: Andrew is the exact man shown in ${aIdx}, he has thick black glasses, curly hair, and a prominent mustache. James is the exact man shown in ${jIdx}, he is clean-shaven, has no glasses, and no mustache. `;
+       suffixDefinitions = `Note: Andrew is the exact man shown in ${aIdx}. James is the exact man shown in ${jIdx}. `;
     }
 
     // The user owns the composition natively. We never mutate their grammatical string!
