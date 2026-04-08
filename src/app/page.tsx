@@ -131,7 +131,7 @@ export default function Home() {
           <img src="/logo-nobg.png" alt="GFCG Logo" className="logo" />
           <h1>Image Generator</h1>
         </div>
-        <p>Trust our gut. Generate satirical LinkedIn posts easily.</p>
+        <p>Trust our gut. Generate GFCG Scenarios easily.</p>
       </header>
       
       <div className="layout">
