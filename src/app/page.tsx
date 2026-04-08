@@ -4,64 +4,34 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 const GutLoadingAnimation = () => {
-  // A flawlessly balanced set of pristine bezier curves mirroring the exact S-topology 
-  // of the logo gut. By reverting to mathematically drawn SVGs instead of extracting 
-  // rasterized pixel blocks, we guarantee pristine, non-fuzzy retina rendering.
-  const gutPath = "M 15 15 C 110 15, 110 32, 55 32 C 0 32, 0 49, 55 49 C 110 49, 110 66, 55 66 C 0 66, 0 83, 15 83";
-
   return (
-    <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
-
-      {/* Scaled gracefully with plenty of bounding box space to prevent clip squishing */}
-      <div style={{ position: 'relative', width: '120px', height: '95px', margin: '0 auto 1.5rem auto' }}>
-        
-        {/* Layer 1: Base sharp vector layer, completely clean unbroken SVG! */}
-        <svg width="120px" height="95px" style={{ position: 'absolute', top: 0, left: 0, display: 'block', overflow: 'visible' }}>
-          <path
-            d={gutPath}
-            fill="none"
-            stroke="#2c3e50"
-            strokeWidth="7"
-            strokeLinecap="round"
-          />
-        </svg>
-
-        {/* 
-          Layer 2: The Masked Bulge layer. Natively scalable perfectly crisp SVG! 
-          Takes the same mathematical shape but renders it fatter.
-        */}
-        <svg width="120px" height="95px" style={{ position: 'absolute', top: 0, left: 0, display: 'block', overflow: 'visible' }}>
-          <defs>
-            {/* 
-              By nesting an <animateMotion> inside a pure SVG <mask id="..."> block, 
-              we completely bypass robust CSS offset limitations. It perfectly trails the line!
-            */}
-            <mask id="travel-mask">
-              <rect width="100%" height="100%" fill="black" />
-              <circle r="14" fill="url(#softGradient)">
-                <animateMotion dur="3s" repeatCount="indefinite" path={gutPath} />
-              </circle>
-            </mask>
-            <radialGradient id="softGradient">
-              <stop offset="0%" stopColor="white" />
-              <stop offset="50%" stopColor="white" />
-              <stop offset="100%" stopColor="black" />
-            </radialGradient>
-          </defs>
-
-          {/* The physically bloated exact replica version, mapped locally to the dot via mask */}
-          <path
-            d={gutPath}
-            fill="none"
-            stroke="#2c3e50"
-            strokeWidth="13"
-            strokeLinecap="round"
-            mask="url(#travel-mask)"
-          />
-        </svg>
-
+    <div style={{ width: '100%', maxWidth: '300px', margin: '3rem auto', textAlign: 'center' }}>
+      <div style={{ 
+        width: '100%', 
+        height: '6px', 
+        backgroundColor: '#e5e7eb', 
+        borderRadius: '3px',
+        overflow: 'hidden',
+        position: 'relative'
+      }}>
+        <motion.div
+          style={{
+            height: '100%',
+            backgroundColor: 'var(--primary-color)',
+            width: '40%',
+            borderRadius: '3px'
+          }}
+          animate={{
+            x: ['-100%', '250%']
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 1.5,
+            ease: "easeInOut"
+          }}
+        />
       </div>
-      <div style={{ fontWeight: 600, color: 'var(--primary-color)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+      <div style={{ fontWeight: 600, color: 'var(--primary-color)', fontSize: '0.9rem', marginTop: '1.25rem' }}>
         Consulting the gut...
       </div>
     </div>
