@@ -21,30 +21,44 @@ export async function POST(req: Request) {
     let imageIndex = 1;
 
     const loadCharacterImages = async (folderName: string): Promise<string> => {
-      // Production Vercel Safeguard: Ensure we look inside the 'public' directory
-      // Arbitrary root folders are NOT copied over to the Serverless Runtime Environment natively!
-      const folderPath = path.join(process.cwd(), 'public', 'char', folderName);
-      if (!fs.existsSync(folderPath)) return '';
-      
-      const files = fs.readdirSync(folderPath);
-      const indices: number[] = [];
-
-      for (const file of files) {
-        if (file.toLowerCase().endsWith('.png') || file.toLowerCase().endsWith('.jpg') || file.toLowerCase().endsWith('.jpeg')) {
-          const fullPath = path.join(folderPath, file);
-          // We vastly upgrade the dataset payload to 1024x1024 @ 100% Quality. 
-          // At max density, this hits ~350KB per image, perfectly evading Replicate's 10MB limit
-          // while delivering maximum structural skin/fabric pore data to the IP-Adapter.
-          const buffer = await sharp(fullPath).resize(1024, 1024, { fit: 'inside' }).jpeg({ quality: 100 }).toBuffer();
-          input_images.push(`data:image/jpeg;base64,${buffer.toString('base64')}`);
-          indices.push(imageIndex);
-          imageIndex++;
-          break; // STRICT CLAMP: Stop after 1 image to guarantee zero identity bleeding
+      try {
+        // Production Vercel Safeguard: Serverless functions (Lambda) physically detach from the `public/` directory during build.
+        // The most robust way to access static assets in Next.js Serverless routes is to fetch them dynamically from our own CDN via URL.
+        const origin = new URL(req.url).origin;
+        
+        let imagePath = '';
+        if (folderName.toLowerCase().includes('andrew')) {
+            imagePath = encodeURI('/char/andrew clarke/Andrew Clarke Shoulder shot.png');
+        } else {
+            imagePath = encodeURI('/char/james wilson/James Wilson shouldershot.png');
         }
-      }
 
-      if (indices.length === 0) return '';
-      return `image ${indices[0]}`;
+        const absoluteUrl = `${origin}${imagePath}`;
+        console.log(`Fetching IP-Adapter image from Edge CDN: ${absoluteUrl}`);
+
+        const resp = await fetch(absoluteUrl);
+        if (!resp.ok) {
+            console.error(`Vercel CDN Fetch Failed: ${resp.status} for ${absoluteUrl}`);
+            return '';
+        }
+
+        const arrayBuffer = await resp.arrayBuffer();
+        
+        // We vastly upgrade the dataset payload to 1024x1024 @ 100% Quality. 
+        // At max density, this hits ~350KB per image, perfectly evading Replicate's 10MB limit
+        // while delivering maximum structural skin/fabric pore data to the IP-Adapter.
+        const buffer = await sharp(arrayBuffer).resize(1024, 1024, { fit: 'inside' }).jpeg({ quality: 100 }).toBuffer();
+        
+        input_images.push(`data:image/jpeg;base64,${buffer.toString('base64')}`);
+        
+        const currentIndex = imageIndex;
+        imageIndex++;
+        
+        return `image ${currentIndex}`;
+      } catch (e) {
+         console.error("Serverless edge fetch error:", e);
+         return '';
+      }
     }
 
     // Determine intent
