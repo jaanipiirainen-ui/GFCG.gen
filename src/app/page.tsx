@@ -41,6 +41,7 @@ const GutLoadingAnimation = () => {
 
 export default function Home() {
   const [prompt, setPrompt] = useState('');
+  const [password, setPassword] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +59,7 @@ export default function Home() {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt, password }),
       });
 
       const data = await response.json();
@@ -142,6 +143,20 @@ export default function Home() {
             <h2>Generate Image</h2>
             
             <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input 
+                id="password"
+                type="password"
+                className="form-control"
+                placeholder="Enter access password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isGenerating}
+                required
+              />
+            </div>
+
+            <div className="form-group">
               <label htmlFor="prompt">What should the guys be doing?</label>
               <textarea 
                 id="prompt"
@@ -152,6 +167,7 @@ export default function Home() {
                 onChange={(e) => setPrompt(e.target.value)}
                 disabled={isGenerating}
                 required
+                maxLength={1000}
               />
             </div>
 

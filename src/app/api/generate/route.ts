@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import Replicate from 'replicate';
-import fs from 'fs';
-import path from 'path';
 import sharp from 'sharp';
+
+// Allow up to 60s for Replicate inference on Vercel Hobby tier
+export const maxDuration = 60;
+
+const MAX_PROMPT_LENGTH = 1000;
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY,
@@ -10,20 +13,35 @@ const replicate = new Replicate({
 
 export async function POST(req: Request) {
   try {
-    const { prompt } = await req.json();
+    const body = await req.json();
 
-    if (!process.env.REPLICATE_API_TOKEN && !process.env.REPLICATE_API_KEY) {
-      return NextResponse.json({ error: 'Replicate API Token not configured' }, { status: 500 });
+    // --- Authentication Gate ---
+    const password = body?.password;
+    const expectedPassword = process.env.GENERATION_PASSWORD;
+    if (expectedPassword && password !== expectedPassword) {
+      return NextResponse.json({ error: 'Incorrect password.' }, { status: 401 });
     }
 
-    // 1. We dynamically build the IP-Adapter array from the multi-image folders
+    // --- Input Validation ---
+    const rawPrompt = body?.prompt;
+    if (!rawPrompt || typeof rawPrompt !== 'string') {
+      return NextResponse.json({ error: 'A text prompt is required.' }, { status: 400 });
+    }
+    const prompt = rawPrompt.slice(0, MAX_PROMPT_LENGTH).trim();
+    if (prompt.length === 0) {
+      return NextResponse.json({ error: 'Prompt cannot be empty.' }, { status: 400 });
+    }
+
+    if (!process.env.REPLICATE_API_TOKEN && !process.env.REPLICATE_API_KEY) {
+      return NextResponse.json({ error: 'Image generation is not configured.' }, { status: 500 });
+    }
+
+    // --- Build IP-Adapter image array ---
     const input_images: string[] = [];
     let imageIndex = 1;
 
     const loadCharacterImages = async (folderName: string): Promise<string> => {
       try {
-        // Production Vercel Safeguard: Serverless functions (Lambda) physically detach from the `public/` directory during build.
-        // The most robust way to access static assets in Next.js Serverless routes is to fetch them dynamically from our own CDN via URL.
         const origin = new URL(req.url).origin;
         
         let imagePath = '';
@@ -34,19 +52,12 @@ export async function POST(req: Request) {
         }
 
         const absoluteUrl = `${origin}${imagePath}`;
-        console.log(`Fetching IP-Adapter image from Edge CDN: ${absoluteUrl}`);
-
         const resp = await fetch(absoluteUrl);
         if (!resp.ok) {
-            console.error(`Vercel CDN Fetch Failed: ${resp.status} for ${absoluteUrl}`);
             return '';
         }
 
         const arrayBuffer = await resp.arrayBuffer();
-        
-        // We vastly upgrade the dataset payload to 1024x1024 @ 100% Quality. 
-        // At max density, this hits ~350KB per image, perfectly evading Replicate's 10MB limit
-        // while delivering maximum structural skin/fabric pore data to the IP-Adapter.
         const buffer = await sharp(arrayBuffer).resize(1024, 1024, { fit: 'inside' }).jpeg({ quality: 100 }).toBuffer();
         
         input_images.push(`data:image/jpeg;base64,${buffer.toString('base64')}`);
@@ -55,8 +66,7 @@ export async function POST(req: Request) {
         imageIndex++;
         
         return `image ${currentIndex}`;
-      } catch (e) {
-         console.error("Serverless edge fetch error:", e);
+      } catch {
          return '';
       }
     }
@@ -65,17 +75,13 @@ export async function POST(req: Request) {
     let wantsAndrew = /(Andrew|Clarke)/i.test(prompt);
     let wantsJames = /(James|Wilson)/i.test(prompt);
 
-    // If the user types "the other guy" or "both guys", they implied the second character without explicitly naming him!
-    // We restrict this regex strictly to humans to prevent false positives like "both hands" triggering the second character's IP-Adapter.
     const impliesMultiple = /\b(they|together|friends|men|guys|both guys|two guys|two men|the other guy)\b/i.test(prompt);
     if (impliesMultiple) {
       wantsAndrew = true;
       wantsJames = true;
     }
 
-    // We determine who was chronologically mentioned FIRST in the sentence.
-    // IP-Adapters physically map `image 1` to the first structural human subject described in the prompt.
-    // We MUST synchronize the API Array Injection order to match the chronological sentence order to prevent identity swapping!
+    // Chronological ordering for IP-Adapter identity mapping
     const andrewPosition = prompt.toLowerCase().indexOf('andrew') !== -1 ? prompt.toLowerCase().indexOf('andrew') : 9999;
     const clarkePosition = prompt.toLowerCase().indexOf('clarke') !== -1 ? prompt.toLowerCase().indexOf('clarke') : 9999;
     const aIdx = Math.min(andrewPosition, clarkePosition);
@@ -93,7 +99,6 @@ export async function POST(req: Request) {
 
     let suffixDefinitions = 'Note: ';
     
-    // Inject the IP-Adapter payloads exactly chronologically
     if (jamesIsFirst) {
       const idxStr1 = await loadCharacterImages('james wilson');
       if (idxStr1) suffixDefinitions += `James is the exact man shown in ${idxStr1}. `;
@@ -112,26 +117,21 @@ export async function POST(req: Request) {
       }
     }
 
-    // Fallback: If they mentioned nothing specific, load both and force them in.
+    // Fallback: If they mentioned nothing specific, load both.
     if (!wantsAndrew && !wantsJames) {
        const aIdx = await loadCharacterImages('andrew clarke');
        const jIdx = await loadCharacterImages('james wilson');
        suffixDefinitions = `Note: Andrew is the exact man shown in ${aIdx}. James is the exact man shown in ${jIdx}. `;
     }
 
-    // The user owns the composition natively. We never mutate their grammatical string!
-    // We simply append the definitions and the photographic aesthetic wrapper to the suffix.
     const enhancedPrompt = `${prompt}. ${suffixDefinitions} professional corporate photography, natural lighting, high quality, photorealistic, 85mm lens.`;
-
-    console.log("Calling Next-Gen FLUX.2 PRO endpoint with images:", input_images.length);
     
-    // 3. The FLUX.2 Multi-IP Payload
     const output = await replicate.run(
       "black-forest-labs/flux-2-pro", 
       {
         input: {
           prompt: enhancedPrompt,
-          input_images: input_images, // Dynamically sized array!
+          input_images: input_images,
           output_format: "png",
           safety_tolerance: 5
         }
@@ -139,7 +139,6 @@ export async function POST(req: Request) {
     );
 
     let imageUrl = '';
-    // Safely parse the dynamically routed FLUX.2 Output
     if (Array.isArray(output)) {
       imageUrl = output[0].toString();
     } else {
@@ -149,9 +148,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ imageUrl });
 
   } catch (error: any) {
-    console.error('API Route Error:', error);
+    console.error('Generation failed:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to generate image' },
+      { error: 'Image generation failed. Please try again.' },
       { status: 500 }
     );
   }

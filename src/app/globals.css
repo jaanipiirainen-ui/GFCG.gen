@@ -9,7 +9,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Times New Roman", Times, serif; /* Give it a slightly older consulting flyer feel, or keep it clean */
-  background-image: url('/assets/bg-1.png');
+  background-image: url('/bg-1.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

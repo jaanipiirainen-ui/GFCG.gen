@@ -15,5 +15,10 @@ public/assets/
 assets/
 *.zip
 
+# Build output
 .next
 node_modules
+
+# Test/debug scripts
+test-run*.js
+implementation_plan.md
